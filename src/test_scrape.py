@@ -16,7 +16,7 @@ from utils import checkHost , strToArgv
 #Only process_item_element_recursively() is put through significant
 #testing, as it does the main work
 
-class ScraperTestCase(unittest.TestCase):
+class DumperTestCase(unittest.TestCase):
     
     
 
