@@ -15,4 +15,4 @@
 
 *rejig to do proper stdout and stdin to make it pipeable
 
-~~*change txt files to md ~~
+~~change txt files to md 
