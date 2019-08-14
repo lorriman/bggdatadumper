@@ -1,0 +1,28 @@
+{   
+    "comment1" : "Security regexes used to scan the raw xml for dodgy or unexpected strings associated with xml hacks",
+    "version" : "1.0",
+    "strip_formula_equal_sign_for_csv" : "1",
+    "rate" : "600",
+    "games_per_xml_fetch" : 100,
+    "start_page" : 1,
+    "base_url" : "https://www.boardgamegeek.com",
+    "html_path" : "/browse/boardgame/page/{page}",
+    "xml_path" :   "/xmlapi2/thing?id={ids}",
+    "commenta" : "sub-item keys (left side of the colon) are a documentation label of your choice but ",
+    "commentb" : "also can be used to replace defaults",
+    "commentc" : "Defaults are hardwired in the code but reproduced here as an example of replacement.",
+    "commentd" : "Regexes require quadruple-backslashing to match a single backslash, known as python+json backslash hell ",
+    "aggregates_regexes" : {
+        "unittesting 1 ignorethis" : "/unittest/unittest1:name=board",
+        "item-link-type" : "/item/link:type=[a-z]{1,}",
+        "language-dependence-level" : "/item/poll:name=language_dependence::title=Language Dependence::totalvotes:/results/result"
+    },
+    "force_value_into_fieldname_regexes" : {
+        "unittesting 1 ignore this" : "/unittest/unittest1:number$",
+        "item-poll-numplayers" : "/item/poll.{1,}/results:numplayers$"
+    },
+    "security_regexes" : {
+
+    }
+
+}
