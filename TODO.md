@@ -1,3 +1,4 @@
+*uncomment the main exception handler (oops!). Commented out for debugging.
 
 *refactor fetchxml and remove the processing code in to its own function
 
