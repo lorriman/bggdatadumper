@@ -41,8 +41,7 @@ Settings in config.json are overriden by commandline args.
 
 example for 5000 games (assuming it works on windows) :
             
-c:\>python3 scrape.py -s 3 test.csv 50
-
+c:\>python3 -m bggdatadumper -s 3 test.csv 50
             
 
 positional arguments:
