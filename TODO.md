@@ -17,4 +17,6 @@
 
 *security regexes
 
+*security: variable to max-depth recusion, avoid stack blow.
+
 ~~change txt files to md ~~
