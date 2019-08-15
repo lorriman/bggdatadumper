@@ -4,10 +4,11 @@ Dumps boardgame data from boardgamegeek, via the public xml api, in to a csv fil
 ##intro
 
 bggdatadumper dumps boardgamegeek boardgame xml in to a fairly raw form
-directly in to a csv file ready to be manipulated by Excel or any
+directly to a csv file ready to be manipulated by Excel or any
 spreadsheet. The dump preserves all of the original data in the
 xml from the BGG xml api by generically traversing the tags and 
-attributes converting them in to long very column names.
+attributes converting them in to long very column names. It works
+with BGG xml quirks and is not generically usable for any XML.
 
 ##future updates
 
