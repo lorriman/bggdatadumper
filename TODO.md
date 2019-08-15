@@ -15,4 +15,6 @@
 
 *rejig to do proper stdout and stdin to make it pipeable
 
+*security regexes
+
 ~~change txt files to md ~~
