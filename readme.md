@@ -19,10 +19,51 @@ long column names are not in a convenient form.
 
 It has been developed and tested only on Linux. It requires python 3.7
 
+It uses a few libraries which can be installed as follows:
+
+'''python3 -m install''' 
+
 For usage run from the commandline as
 
 '''   python3 -m bggdatadumper -h'''
 
-It uses a few libraries which can be installed as follows:
+Fetches games in geek-rating order up to maximum pages you specify.
+Pages are as found on https://boardgamegeek.com/browse/boardgame.
+100 games per page. To fetch top 200 games specify 2 pages.
+BGG rate-limits to 2 api calls per second (the utility rate-limits itself). 
+Minimum time to download 5000 games is 8mins 20secs. 
+For advanced options see config.json 
+Settings in config.json are overriden by commandline args. 
 
-'''python3 -m install''' 
+example for 5000 games (assuming it works on windows) :
+            
+c:\>python3 scrape.py -s 3 test.csv 50
+
+            
+
+positional arguments:
+
+csvfilename           destination
+
+pages                 number of pages to scrape (100 games per page)
+
+optional arguments:
+
+-h, --help            show this help message and exit
+
+-v, --version         show program's version number and exit
+
+-s START, --start START
+
+Start page, default 1
+
+-r RATE, --rate RATE  *rate limiting, millisecs per call. Default 600
+
+-g GAMES, --games GAMES
+
+*How many games to fetch xml for at a time. Default 100.
+
+-c CONFIG, --config CONFIG
+
+*full path to a config.json
+
