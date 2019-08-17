@@ -12,9 +12,8 @@ with BGG xml quirks and is not generically usable for any XML.
 
 ##future updates
 
-In future a facility will be provided to direct the dumper to
-convert column names in to a format of your choice as the 
-long column names are not in a convenient form.
+In future a facility will be provided to provide your own column 
+name conversions to automate the process ahead of a spreadsheet.
 
 Currently it only handles boardgame data. A future version
 will handle other bgg data, such as collections, forums posts etc.
@@ -34,10 +33,9 @@ For usage run from the commandline as
 Fetches games in geek-rating order up to maximum pages you specify.
 Pages are as found on https://boardgamegeek.com/browse/boardgame.
 100 games per page. To fetch top 200 games specify 2 pages.
-BGG rate-limits to 2 api calls per second (the utility rate-limits itself). 
+BGG limits to 2 api calls per second and returns an error
+if called too frequently, so the utility rate-limits itself. 
 Minimum time to download 5000 games is 8mins 20secs. 
-For advanced options see config.json 
-Settings in config.json are overriden by commandline args. 
 
 example for 5000 games (assuming it works on windows) :
             
