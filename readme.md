@@ -24,11 +24,11 @@ It has been developed and tested only on Linux. It requires python 3.6+
 
 It uses a few libraries which can be installed as follows:
 
-''' python3 -m install ''' 
+```   python3 -m install ``` 
 
 For usage run from the commandline as
 
-'''   python3 -m bggdatadumper -h '''
+```   python3 -m bggdatadumper -h ```
 
 Fetches games in geek-rating order up to maximum pages you specify.
 Pages are as found on https://boardgamegeek.com/browse/boardgame.
@@ -39,32 +39,26 @@ Minimum time to download 5000 games is 8mins 20secs.
 
 example for 5000 games (assuming it works on windows) :
             
-c:\>python3 -m bggdatadumper -s 3 bggdata.csv 50
+```   c:\>python3 -m bggdatadumper -s 3 bggdata.csv 50```
             
 
 positional arguments:
 
-csvfilename           destination
+csvfilename           *destination*
 
-pages                 number of pages to scrape (100 games per page)
+pages                 *number of pages to scrape (100 games per page)*
 
 optional arguments:
 
--h, --help            show this help message and exit
+            -h, --help            *show this help message and exit*
 
--v, --version         show program's version number and exit
+            -v, --version         *show program's version number and exit*
 
--s START, --start START
+            -s START, --start START   *Start page, default 1*
 
-Start page, default 1
+            -r RATE, --rate RATE    *rate limiting, millisecs per call. Default 600*
 
--r RATE, --rate RATE  *rate limiting, millisecs per call. Default 600
+            -g GAMES, --games GAMES             *How many games to fetch xml for at a time. Default 100*
 
--g GAMES, --games GAMES
-
-*How many games to fetch xml for at a time. Default 100.
-
--c CONFIG, --config CONFIG
-
-*full path to a config.json
+            -c CONFIG, --config CONFIG          *full path to a config.json*
 
