@@ -1,16 +1,16 @@
 # bggdatadumper
 Dumps boardgame data from boardgamegeek, via the public xml api, in to a csv file
 
-##intro
+## Intro
 
 bggdatadumper dumps boardgamegeek boardgame xml in to a fairly raw form
 directly to a csv file ready to be manipulated by Excel or any
 spreadsheet. The dump preserves all of the original data in the
 xml from the BGG xml api by generically traversing the tags and 
 attributes converting them in to long very column names. It works
-with BGG xml quirks and is not generically usable for any XML.
+with BGG xml quirks and is not generically usable for other XML.
 
-##future updates
+## Future updates
 
 In future a facility will be provided to provide your own column 
 name conversions to automate the process ahead of a spreadsheet.
@@ -18,17 +18,17 @@ name conversions to automate the process ahead of a spreadsheet.
 Currently it only handles boardgame data. A future version
 will handle other bgg data, such as collections, forums posts etc.
 
-##requirements and usage
+## requirements and usage
 
-It has been developed and tested only on Linux. It requires python 3.7
+It has been developed and tested only on Linux. It requires python 3.6+
 
 It uses a few libraries which can be installed as follows:
 
-'''python3 -m install''' 
+''' python3 -m install ''' 
 
 For usage run from the commandline as
 
-'''   python3 -m bggdatadumper -h'''
+'''   python3 -m bggdatadumper -h '''
 
 Fetches games in geek-rating order up to maximum pages you specify.
 Pages are as found on https://boardgamegeek.com/browse/boardgame.
