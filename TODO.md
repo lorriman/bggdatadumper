@@ -1,8 +1,8 @@
-*uncomment the main exception handler (oops!). Commented out for debugging.
+- [ ] uncomment the main exception handler (oops!). Commented out for debugging.
 
-*refactor fetchxml and remove the processing code in to its own function
+- [ ] refactor fetchxml and remove the processing code in to its own function
 
-*other random rafctorings/rationalisations (processing code could be chopped up)
+- [ ] other random rafctorings/rationalisations (processing code could be chopped up)
 
 *rename functions and classes according to PEP 8 style guide, also ref google style guide
 
@@ -20,4 +20,4 @@
 
 *security: variable to max-depth recusion, avoid stack blow.
 
-~~change txt files to md ~~
+~~change txt files to md~~
