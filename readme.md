@@ -42,23 +42,23 @@ example for 5000 games (assuming it works on windows) :
 ```   c:\>python3 -m bggdatadumper -s 3 bggdata.csv 50```
             
 
-positional arguments:
+**positional arguments:**
 
 csvfilename           *destination*
 
 pages                 *number of pages to scrape (100 games per page)*
 
-optional arguments:
+**optional arguments:**
 
-            -h, --help            *show this help message and exit*
+-h, --help            *show this help message and exit*
 
-            -v, --version         *show program's version number and exit*
+-v, --version         *show program's version number and exit*
 
-            -s START, --start START   *Start page, default 1*
+-s START, --start START   *Start page, default 1*
 
-            -r RATE, --rate RATE    *rate limiting, millisecs per call. Default 600*
+-r RATE, --rate RATE    *rate limiting, millisecs per call. Default 600*
 
-            -g GAMES, --games GAMES             *How many games to fetch xml for at a time. Default 100*
+-g GAMES, --games GAMES             *How many games to fetch xml for at a time. Default 100*
 
-            -c CONFIG, --config CONFIG          *full path to a config.json*
+-c CONFIG, --config CONFIG          *full path to a config.json*
 
