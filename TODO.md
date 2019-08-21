@@ -1,3 +1,5 @@
+- [ ] Encoding error on Windows. Implement https://stackoverflow.com/questions/27092833/
+
 - [ ] uncomment the main exception handler (oops!). Commented out for debugging.
 
 - [ ] refactor fetchxml and remove the processing code in to its own function
