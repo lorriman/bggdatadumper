@@ -23,6 +23,21 @@
     },
     "security_regexes" : {
 
+    },
+    "col_names" : {
+        "#comment: each regex is compared in order of listing, so last may be skipped if a prior matched" : "",
+        "/item/name:type=primary::sortindex=1::value:" : "name",
+        "/item/name:type=alternate::sortindex=1::value:" : "name_alternate",
+        "/item/maxplayers:value:" :"official_max_players",
+        "/item/minplayers:value:" : "official_min_players",
+
+        "#comment: keeping it simpler with multiple regexes instead of one ":"",
+        "^/item/poll:name=suggested_numplayers::title=User Suggested Number of Players::totalvotes:$" : "votes_numplayers_total",
+        "/item/poll:name=suggested_numplayers::title=User Suggested Number of Players::totalvotes:/results:numplayers=([0-9+]+?):/result:value=(Best|Not Recommended|Recommended)::numvotes:" : "votes {1} numplayers {0}",
+
+        "^/item/poll:name=suggested_playerage::title=User Suggested Player Age::totalvotes:$" : "votes player age total",
+        "/item/poll:name=suggested_playerage::title=User Suggested Player Age::totalvotes:/results/result:value=([0-9]+)::numvotes:" : "votes player age {0}",
+        "/item/poll:name=suggested_playerage::title=User Suggested Player Age::totalvotes:/results/result:value=([0-9]+ and up)::numvotes:" : "votes player age {0}"
     }
 
 }

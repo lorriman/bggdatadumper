@@ -38,6 +38,13 @@ class Config:
         ap.add_argument('-r', '--rate', type=int, help="*rate limiting, millisecs per call. Default 600", default=None )
         ap.add_argument('-g', '--games', type=int, help="*How many games to fetch xml for at a time. Default 100.", default=None)
         ap.add_argument('-c', '--config', help="*full path to a config.json", default=None)
+        ap.add_argument('-u', '--base_url', help="*base url of bgg", default=None)
+        ap.add_argument('-p', '--html_path', help="*path to bgg pages", default=None)
+        ap.add_argument('-x', '--xml_path', help="*path to bgg api", default=None)
+        ap.add_argument('-d', '--debug', help="*for debugging", default=False)
+        
+        
+        
         #ap.add_argument('-w', '--suppress_warnings', action='store_true', help="suppress warnings", default= False )
         args=ap.parse_args(arg_str)
         #self.suppress_warnings=args.suppress_warnings
@@ -65,10 +72,13 @@ class Config:
         
         self.aggregates_regexes=None
         self.force_value_into_fieldname_regexes=None
+        self.new_col_names={}
         self.rate_limiter_minimum=None      
         self.games_per_xml_fetch=None
         self.base_url=None
+        self.html_path=None
         self.xml_path=None
+        self.debug=False
         #security, to neuter spreadsheet formulas if BGG were hacked
         self.option_strip_formula_equal_sign_for_csv=None
         self.games_per_xml_fetch=None
@@ -91,6 +101,8 @@ class Config:
             self.base_url=config["base_url"]
             self.xml_path=config["xml_path"]
             self.html_path=config["html_path"]
+            
+            
             #security, to neuter spreadsheet forumulas if BGG were hacked
             self.option_strip_formula_equal_sign_for_csv=\
                 config["strip_formula_equal_sign_for_csv"]
@@ -125,18 +137,38 @@ class Config:
 
             #but first, func to aid inserting 
             # config regex data in to dicts
-            # as compiled regexes
-            def config_regexdict_insert_to_dict(config,target_dict,config_key):
+            # dict of compiled regexes keyed by strings
+            def fill_string_dict_of_regex(config,target_dict,config_key):
                 try:
                     conf_dict=config[config_key] #dict
                     for key in conf_dict:
-                        # (python needs double escaping)
+                        # (python needs quad escaping)
                         regex_str=(conf_dict[key]).replace('\\','\\\\') 
                         target_dict[key]=re.compile(regex_str)
                 except Exception as e:
                     raise Exception(f"Structure of config.json for section \
                         {config_key}? Details: "+ str(e))
-                    
+
+            #dict of string keyed with compiled regexes
+            def fill_regex_dict_of_string(config,target_dict,config_key):
+                try:
+                    conf_dict=config[config_key] #dict
+                    for key in conf_dict:
+                        # (python needs quad escaping)
+                        regex_str=key.replace('\\','\\\\')
+                        regex=re.compile(regex_str)
+                        target_dict[regex]=conf_dict[key]
+                except Exception as e:
+                    raise Exception(f"Structure of config.json for section \
+                        {config_key}? Details: "+ str(e))
+           
+
+
+            
+            fill_regex_dict_of_string(
+                config,
+                self.new_col_names,
+                "col_names")
 
             # regexes to match columns for agregating 
             # (the key is not strictly needed, 
@@ -149,7 +181,7 @@ class Config:
             # the config file, potentially
             # replacing defaults, above, 
             # if the key name is the same
-            config_regexdict_insert_to_dict(
+            fill_string_dict_of_regex(
                 config,
                 self.aggregates_regexes,
                 "aggregates_regexes")
@@ -158,7 +190,7 @@ class Config:
                 "item-poll-numplayers" : 
                     re.compile(r'/item/poll.{1,}/results:numplayers$')
             }
-            config_regexdict_insert_to_dict(
+            fill_string_dict_of_regex(
                 config,
                 self.force_value_into_fieldname_regexes,
                 "force_value_into_fieldname_regexes")
@@ -172,6 +204,12 @@ class Config:
         self.pages_of_ids_to_fetch=args.pages
         if args.rate: self.rate_limiter_minimum=args.rate/1000        
         if args.games: self.games_per_xml_fetch=args.games
+        if args.base_url : self.base_url=args.base_url
+        if args.html_path : self.html_path=args.html_path
+        if args.xml_path : self.xml_path=args.xml_path
+        if args.debug: self.debug=True
+        
+        #ap.add_argument('-x' '--xml_path', help="*path to bgg api", default=None)
 
     def _check_n_warn(self):
         #check values and issue warnings
