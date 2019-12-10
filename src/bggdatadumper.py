@@ -180,8 +180,9 @@ class BGGdumper:
 
             url=config.base_url+config.html_path.format(page=page_num)
            
-            
+            #invoke the rate limiter to slow access and avoid BGG server errors
             self._rate_limiter.limit()
+
             page=urllib.request.urlopen(url)
             soup=bs(page,'lxml')
 
@@ -330,20 +331,23 @@ class BGGdumper:
         return bs(xmlresponse,"lxml")      
 
     def fetch_ids_xml_and_process(self): 
-        ''' Process game ids'''
+        ''' Fetches the xml for batches of ids and processes them to extract the data
+        in to the arrays/dicts _csv_items and _csv_cols ready for exporting to a csv. 
+        '''
 
+        #localise variables for convenience
         config=self.config
         game_ids=self._game_ids
         csv_cols=self._csv_cols
         csv_items=self._csv_items  
 
+        #update the visible progress bar
         progress_str="api queries: xml data for "+str(len(game_ids))+' games.'
         progress_counter=0;
         progress_bar(0,len(game_ids),progress_str)
 
         url=config.base_url+config.xml_path
-       
-        
+               
         #just trying out generators. The result is a bit clunky.
         # Also I'm certain it's a python crime to 
         # yield a terminating value. #revisit
@@ -357,41 +361,47 @@ class BGGdumper:
             # generators to try them out. #bad #shame #disappointedinmyself
             yield -1
         
+        #revisit: is this being used by the testcode?
         if config.debug:
             config.games_per_xml_fetch=1
             game_ids=['1','2']
 
-        more=True
+        #more ids to process
+        is_more_ids=True
         id_gen=id_generator(game_ids)
 
 
-        while more:
+        while is_more_ids:
             working_url=url
             #print('passing')
             
+            #get the next lot of ids using the generator 
             id_batch=[]
             for i in range(0,config.games_per_xml_fetch):
                 id=next(id_gen)
                 if id!=-1:
                     id_batch.append(id)
-                else:#Klunk, gah!
-                    more=False
+                else:#Klunk, gah!, this is why we need to revisit and straighten out the generator
+                    is_more_ids=False
                     break
-
-            #print(id_batch)
-            #print(len(id_batch))
+            
+            #no more ids, bug out.
             if len(id_batch)==0:
                 break
+
+            #make the comma separated list of ids for the url
             id_str=''
             for id in id_batch:
                 id_str+=id+','
             #remove terminating comma
             id_str=id_str.strip(',')
             
-            #if not config.debug:
+            #make the url
             working_url=working_url.format(ids=id_str)
 
+            #invoke the rate limiter to slow access and avoid BGG server errors
             self._rate_limiter.limit()
+
             xml=fetch_xml(working_url)
             
             xml_items=xml.find_all('item')
@@ -403,29 +413,48 @@ class BGGdumper:
                 csv_item={}
                 col_name="/item"
                 cn=col_name+':type'
+
+                #set the column name in the dict, accessible by itself for quick lookups.
+                #(this repeats overwriting itself which is pointless, 
+                # but for ease of flow-control and readability it's not optimised out)
                 csv_cols[cn]=cn
+                #start adding data-points/cells 
                 csv_item[cn]=xml_item.attrs['type']
+
+                #the items actual BGG id
                 cn=col_name+':id'
                 csv_cols[cn]=cn
                 csv_item[cn]=xml_item.attrs['id']
+                
+                #having done those two data points, the rest of the item's sub-xml can be done quasi-generically
+
                 for child in xml_item.children:
+                    #call the (quasi)generic processor which processes a single tag and then calls itself for any subtags
                     self.process_item_element_recursively(
                         csv_cols,
                         csv_item,
                         col_name,
                         child)
-                #check for dodgy values that might be spreadsheet formulas
+
+                #check and neutralise dodgy data values that might be spreadsheet formulas
+                #revisit: needs test code
                 if config.option_strip_formula_equal_sign_for_csv:
-                    for k in csv_item:
-                        s=csv_item[k]
-                        if len(s)==1:
-                            if s[0]=='=':
-                                csv_item[k]=s.strip('=')
+                    _security_neutralise_spreadsheet_formulas(csv_item)
 
                 #now we have all the data, add the row
                 csv_items.append(csv_item)
+            
+            #update the visible progress_bar
             progress_counter+=len(xml_items)
             progress_bar(progress_counter,len(game_ids),progress_str)
+
+    def _security_neutralise_spreadsheet_formulas(csv_item : dict):
+        for k in csv_item:
+            s=csv_item[k]
+            if len(s)==1:
+                if s[0]=='=':
+                    csv_item[k]=s.strip('=')
+
 
     def rewrite_column_names(self):
         ''' Rewrite the auto-generated column names, which are mostly
