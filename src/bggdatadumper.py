@@ -13,7 +13,7 @@ from utils import init, isDebugging, RateLimiter
 from config import Config
 
 import urllib.request
-from progress import progress
+from progress import progress_bar
 
 from bs4 import BeautifulSoup as bs
 from bs4 import element
@@ -25,18 +25,15 @@ if(sys.version[0]!='3'):
 init();
 
 '''
-
 .. sidebar:: Rewriting column names
+
+    currently disabled for testing (test code not written):
 
     There is an option for the user to add entries to *config.json* to rewrite column 
     names using regular expressions. The -r flag needs to be used to enable this and a familiarity 
     with regular expressions is needed, which are not trivial. A few columns already have this and
     serve as example regular expressions.
-
-
 '''
-
-
 
 # using a class for convenient structuring, not genericity or re-use
 class BGGdumper:  
@@ -57,8 +54,7 @@ class BGGdumper:
     
     It may seem like intelligetly dropping seemingly superfluous data/attributes
     from the xml woul dbe a good idea, but firstly it would be a presumption on the needs of the end user, 
-    secondly it's a whole lot of extra work and judgments could be tricky.
-
+    secondly it's a whole lot of extra work and judgments could be tricky.is
     Currently the dumper only does boardgame xml (not collections, geek buddies etc). 
 
     (below: :ref:`xml fragment<fragment>` )
@@ -69,8 +65,9 @@ class BGGdumper:
 
     1. The BGG xml isn't two dimensional so column names are created by chaining together tag names along
     with their attributes including (most) attribute values. This results in a large number of columns.
-    Column names also end up very large. (Most attributes and their values are repeated/not-unique
-    and so do not create an explosion of columns.) 
+    It also means Column names end up very large, but this preserves info encoded in to the xml tagging. 
+    (Most attributes and their values are repeated/not-unique and so most will not create an explosion 
+    of columns. Ones that would are dealt with as below, *'Some exceptions'*.) 
 
         (There is an option for the user to add entries to *config.json* to rewrite column 
         names using regular expressions. The -r flag needs to be used to enable this and a familiarity 
@@ -159,23 +156,28 @@ class BGGdumper:
         if not self.config.suppress_warnings:
             print('##Warning## '+s)
 
-    def scrapeGamePage(self):    
+    def scrape_to_get_ids(self):    
+        '''scrapes the game listing pages at http://www.boardgamegeek.com/boardgames to collect game ids
+        into self._game_ids array.  '''
+
         #localise a few objects for convenient access    
         config=self.config
         game_ids=self._game_ids
         csv_cols=self._csv_cols
         csv_items=self._csv_items
 
-        ##regular expression to extract the id from the html link        
-        id_regex=re.compile(r"/(?P<id>\d+)/")
         start_page=config.start_page
+        #this is a count #revisit:change name
         pages_to_fetch=config.pages_of_ids_to_fetch
 
+        #update the visible progress bar so the user can see action.      
         progress_str="Scraping boardgame pages"
-        progress(0,pages_to_fetch,progress_str)
+        progress_bar(0,pages_to_fetch,progress_str)
         
-        for page_num in range(start_page,start_page+pages_to_fetch):        
-            progress(page_num-start_page,pages_to_fetch,progress_str)
+        for page_num in range(start_page,start_page+pages_to_fetch):  
+
+            progress_bar(page_num-start_page,pages_to_fetch,progress_str)
+
             url=config.base_url+config.html_path.format(page=page_num)
            
             
@@ -187,26 +189,32 @@ class BGGdumper:
             table = soup.find( 'table', {'class':'collection_table'})
             game_cells=table.find_all('td',{'class': 'collection_objectname'})
 
+
             links = []
             for cell in game_cells:
                 links.append(cell.a['href'])
+
+            ##regular expression to extract the ids from the links        
+            id_regex=re.compile(r"/(?P<id>\d+)/")
+
             for link in links:
                 m=id_regex.search(link)
                 if not m:
                     _warning("id not found in href for "+link+" in "+url)
                 else:
                     game_ids.append(m.group('id'))
-        progress(pages_to_fetch,pages_to_fetch,progress_str)
+
+        progress_bar(pages_to_fetch,pages_to_fetch,progress_str)
 
 
-    def process_item_element_recursively( self ,csv_cols,csv_item,col_name,xml) -> str:
+    def process_item_element_recursively( self, csv_cols, csv_item, col_name, xml) -> str:
         '''Process subitems of item tags (individual games/items)
         Returns the built up col_name for unit testing purposes
         Most of the main xml processing occurs here. 
         '''
 
+        #localise variables for convenience
         config=self.config
-
         tagname=xml.name
 
         # 'None' mens dead whitespace '\n' etc; 
@@ -316,9 +324,13 @@ class BGGdumper:
                 col_name,
                 child)
 
+    def fetch_xml(url : str):
+        '''Utility method that requests the xml and returns a beautiful soup object.'''
+        xmlresponse=urllib.request.urlopen(working_url)
+        return bs(xmlresponse,"lxml")      
 
-    def fetch_xml(self): 
-        ''' Fetches XML'''
+    def fetch_ids_xml_and_process(self): 
+        ''' Process game ids'''
 
         config=self.config
         game_ids=self._game_ids
@@ -327,7 +339,7 @@ class BGGdumper:
 
         progress_str="api queries: xml data for "+str(len(game_ids))+' games.'
         progress_counter=0;
-        progress(0,len(game_ids),progress_str)
+        progress_bar(0,len(game_ids),progress_str)
 
         url=config.base_url+config.xml_path
        
@@ -380,9 +392,8 @@ class BGGdumper:
             working_url=working_url.format(ids=id_str)
 
             self._rate_limiter.limit()
-            xmlresponse=urllib.request.urlopen(working_url)
-            xml=bs(xmlresponse,"lxml")     
-        
+            xml=fetch_xml(working_url)
+            
             xml_items=xml.find_all('item')
             for xml_item in xml_items:
                 # the first tag 'item' needs special treatment 
@@ -414,7 +425,7 @@ class BGGdumper:
                 #now we have all the data, add the row
                 csv_items.append(csv_item)
             progress_counter+=len(xml_items)
-            progress(progress_counter,len(game_ids),progress_str)
+            progress_bar(progress_counter,len(game_ids),progress_str)
 
     def rewrite_column_names(self):
         ''' Rewrite the auto-generated column names, which are mostly
@@ -495,7 +506,7 @@ class BGGdumper:
     #split etc
     def output(self):
         progress_str='writing csv'
-        progress(0,len(self._csv_items),progress_str)
+        progress_bar(0,len(self._csv_items),progress_str)
         with open(self.config.csvfilename, 'w', newline='') as csvfile:
             fieldnames = list(self._csv_cols)
             writer = csv.DictWriter(
@@ -507,7 +518,7 @@ class BGGdumper:
             for item in self._csv_items:
                 writer.writerow(item)
                 c+=1
-                progress(c,len(self._csv_items),progress_str)
+                progress_bar(c,len(self._csv_items),progress_str)
             print('\n')
         print('limiting: '+str(self._rate_limiter.count()))
 
@@ -515,8 +526,8 @@ class BGGdumper:
 
 if __name__ == '__main__':
     bd=BGGdumper()
-    bd.scrapeGamePage()
-    bd.fetch_xml()
+    bd.scrape_to_get_ids()
+    bd.fetch_ids_xml_and_process()
     #bd.rewrite_column_names()
     bd.output()
 

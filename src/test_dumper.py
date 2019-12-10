@@ -40,7 +40,7 @@ class DumperTestCase(unittest.TestCase):
 
   
     def test_scrapeGamePage(self):
-        self.dmpr.scrapeGamePage()
+        self.dmpr.scrape_to_get_ids()
         #first 3 game ids on page 2
         self.assertTrue( set(['194655','14996','43111'])==set(self.dmpr._game_ids) )
         #self.dmpr.fetch_xml()

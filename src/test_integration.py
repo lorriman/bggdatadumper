@@ -30,7 +30,7 @@ class IntegrationTestCase(unittest.TestCase):
         pass
   
     def test_integration(self):
-        self.dmpr.scrapeGamePage()
+        self.dmpr.scrape_to_get_ids()
         self.dmpr.fetch_xml()
         self.dmpr.output()
 
