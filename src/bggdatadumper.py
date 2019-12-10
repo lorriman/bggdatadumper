@@ -24,11 +24,123 @@ if(sys.version[0]!='3'):
 
 init();
 
+'''
+
+.. sidebar:: Rewriting column names
+
+    There is an option for the user to add entries to *config.json* to rewrite column 
+    names using regular expressions. The -r flag needs to be used to enable this and a familiarity 
+    with regular expressions is needed, which are not trivial. A few columns already have this and
+    serve as example regular expressions.
+
+
+'''
+
+
+
 # using a class for convenient structuring, not genericity or re-use
 class BGGdumper:  
-    '''main class for processing code.
-    Exludes configuration code, see config.py/Config class.
-    '''
+    """main class for processing code.
+
+    (Exludes configuration code for processing config.json and commandline arguments, 
+    see :py:mod:`config.Config`.)
+
+    **Introduction**
+
+    The dumper isn't trying for a comprehensive, user-friendly conversion of the xml data. 
+    There are a lot of data points and that would take forever just for the boardgame 
+    xml let alone the collections xml etc. 
+
+    Rather the idea is to process the xml data as generically as reasonable without losing ANY information, 
+    while flattening it ready for the rows/columns of a spreadsheet. The same code can then be 
+    applied to other BGG xml sources of data (collections etc) without too much extra work. 
+    
+    It may seem like intelligetly dropping seemingly superfluous data/attributes
+    from the xml woul dbe a good idea, but firstly it would be a presumption on the needs of the end user, 
+    secondly it's a whole lot of extra work and judgments could be tricky.
+
+    Currently the dumper only does boardgame xml (not collections, geek buddies etc). 
+
+    (below: :ref:`xml fragment<fragment>` )
+        
+    **The general rules are** 
+    
+    (as processed by :py:meth:`~bggdatadumper.BGGdumper.process_item_element_recursively` ):
+
+    1. The BGG xml isn't two dimensional so column names are created by chaining together tag names along
+    with their attributes including (most) attribute values. This results in a large number of columns.
+    Column names also end up very large. (Most attributes and their values are repeated/not-unique
+    and so do not create an explosion of columns.) 
+
+        (There is an option for the user to add entries to *config.json* to rewrite column 
+        names using regular expressions. The -r flag needs to be used to enable this and a familiarity 
+        with regular expressions is needed, which are not trivial. A few columns already have this and
+        serve as example regular expressions.)
+
+
+    2. Most 'datapoints' - what will become cell-values in the csv-file/spreadsheet - are 
+    the value of the last attribute in a tag. Rarely a text node is the datapoint
+    in which case the last attribute value instead becomes part of the column name with 
+    the other attributes.
+
+    3. Some tags are not unique, such as ``<name type="alternate".....`` which is repeated once for
+    each alternate name. Each datapoint of these are aggregated in to one cell separated by commas.
+
+    **Some exceptions:**
+
+    4. A few exceptions where a datapoint is not the last attribute are accounted for with 
+    regular expressions. See *config.json->aggregates_regexes*.    
+    Such datapoints are treated simply by aggregating it and any attributes after it in to 
+    one cell of attribute-name/value pairs seperated by commas. 
+    
+    I've not identified a general rule for such data points to avoid using regular expressions.
+    These can also not be ignored as their values, being usually unique, would create an explosion of
+    redundant columns. 
+    This is the mandatory work that will also need doing for other BGG xml sources (collections etc). 
+
+    5. Conversely, some last attribute values are not suitable datapoints and should instead makeup
+    part of a column name. This is also handled with regular expressions. 
+    See *config.json->force_value_into_fieldname_regexes*.
+
+    :py:meth:`~bggdatadumper.BGGdumper.process_item_element_recursively` handles the sub tags 
+    of ``item`` tags. It does not handle the ``item`` tag itself because of its ``type`` attribute 
+    which would create redundant columns.
+    That code is instead found in :py:meth:`~bggdatadumper.BGGdumper.fetch_xml()` .
+
+    While minimising processing code, thes rules give the user maximum data at the expense of some 
+    unwieldliness and maybe a need to post-process in the spreadsheet with formulas if needed. 
+    
+    So for the following fragment of xml, you can see the data point is usually the final attribute.
+    (There are almost no text nodes in the BGG xml.)
+    The column name we create will be something gargantuan like ::
+
+        /item/poll:name=suggested_numplayers:title=User Suggested Number of Players:totalvotes
+    
+    and the datapoint/cell-value is '699' 
+    
+    The next tag down adds even more stuff to that column name to create the next unique column name
+    but of course missing out the previous datapoint.
+    
+    .. _fragment:
+
+    .. code:: xml    
+
+        <item type="boardgame" id="174430">
+            <thumbnail>https://cf.geekdo-images.com/thumb/img/e7GyV4PaNtwmalU-EQAGecwoBSI=/fit-in/200x150/pic2437871.jpg</thumbnail>
+            <image>https://cf.geekdo-images.com/original/img/lDN358RgcYvQfYYN6Oy2TXpifyM=/0x0/pic2437871.jpg</image>
+            <name type="primary" sortindex="1" value="Gloomhaven" />
+            <name type="alternate" sortindex="1" value="幽港迷城" />
+            <name type="alternate" sortindex="1" value="글룸헤이븐" />
+            <description>Gloomhaven  is a game of Euro-inspired tactical combat in a persistent world of shifting motives. Players will take on the role of a wandering adventurer with their own special set of skills and their own reasons for traveling to this dark corner of the world. Players must work together out of necessity to clear out menacing dungeons and forgotten ruins. In the process, they will enhance their abilities with experience and loot, discover new locations to explore and plunder, and expand an ever-branching story fueled by the decisions they make.&amp;#10;&amp;#10;This is a game with a persistent and changing world that is ideally played over many game sessions. After a scenario, players will make decisions on what to do, which will determine how the story continues, kind of like a &amp;ldquo;Choose Your Own Adventure&amp;rdquo; book. Playing through a scenario is a cooperative affair where players will fight against automated monsters using an innovative card system to determine the order of play and what a player does on their turn.&amp;#10;&amp;#10;Each turn, a player chooses two cards to play out of their hand. The number on the top card determines their initiative for the round. Each card also has a top and bottom power, and when it is a player&amp;rsquo;s turn in the initiative order, they determine whether to use the top power of one card and the bottom power of the other, or vice-versa. Players must be careful, though, because over time they will permanently lose cards from their hands. If they take too long to clear a dungeon, they may end up exhausted and be forced to retreat.&amp;#10;&amp;#10;</description>
+            <yearpublished value="2017" />
+            <minplayers value="1" />
+            <maxplayers value="4" />
+            <poll name="suggested_numplayers" title="User Suggested Number of Players" totalvotes="699">
+                <results numplayers="1">
+                    <result value="Best" numvotes="78" />
+        
+
+    """
 
 
 
@@ -205,7 +317,9 @@ class BGGdumper:
                 child)
 
 
-    def fetch_xml(self):  
+    def fetch_xml(self): 
+        ''' Fetches XML'''
+
         config=self.config
         game_ids=self._game_ids
         csv_cols=self._csv_cols
@@ -306,7 +420,7 @@ class BGGdumper:
         ''' Rewrite the auto-generated column names, which are mostly
         unreadable, can be renamed by setting regular 
         expressions in config.json->new_col_names. 
-        This funtion defines two nested functions and 
+        This function defines two nested functions and 
         calls those at the end, see about 70 lines down.
 
         We use regexes instead of straight strings for comparison
@@ -318,7 +432,7 @@ class BGGdumper:
         '''
         new_col_names_lookup={}
 
-        #create a hash lookup from the regexes in config.json
+        #create a dict/hash lookup from the regexes in config.json
         #ready to do fast lookups when we go through the data.
         def make_new_col_names_lookup():
 
@@ -354,14 +468,15 @@ class BGGdumper:
         #go through the data re-writing the column names.            
         def rewrite():
             
-            #first do the columns hash, which is used for the csv header
-            #this is a straight replacement. 
+            # first do the columns dict, which is used for 
+            # the csv header/first-line in output()
+            # this is a straight replacement. 
             self._csv_cols={} #blank it
             for cn in list(new_col_names_lookup.values()):
                 self._csv_cols[cn]=cn
             
-            #now do the actual data using the old column name to 
-            # fetch the new one from the hash lookup
+            # now do the actual data using the old column name to 
+            # fetch the new one from the dict/hash lookup
             new_items=[]
             for item in self._csv_items:
                 new_item={}
@@ -402,7 +517,7 @@ if __name__ == '__main__':
     bd=BGGdumper()
     bd.scrapeGamePage()
     bd.fetch_xml()
-    bd.rewrite_column_names()
+    #bd.rewrite_column_names()
     bd.output()
 
 '''

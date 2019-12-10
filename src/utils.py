@@ -97,7 +97,7 @@ class RateLimiter:
     500 milliseconds.
     The first call to limit() starts the clock but does not 
     rate limit unless the object was initialised with a
-    start_time, which avoids flow-control awkwardness.
+    start_time, which avoids haivng to write awkward flow-control loops.
     '''
 
     def __init__(self,minimum, start_time=0.0):

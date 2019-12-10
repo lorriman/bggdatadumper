@@ -7,6 +7,9 @@ import argparse
 from argparse import RawTextHelpFormatter
 
 class Config:
+    '''
+    Reads the config.json file, and then commandline arguments which override config.json settings.
+    '''
 
     def _warning(self,s):
         if not self.config.suppress_warnings:
@@ -42,6 +45,7 @@ class Config:
         ap.add_argument('-p', '--html_path', help="*path to bgg pages", default=None)
         ap.add_argument('-x', '--xml_path', help="*path to bgg api", default=None)
         ap.add_argument('-d', '--debug', help="*for debugging", default=False)
+        
         
         
         
@@ -224,6 +228,10 @@ class Config:
         
 
     def load(self):
+        '''
+        Loads config.json and then commandline arguments.
+        Settings will then be accessible. 
+        '''
 
         try:            
             self._load_json(self.version, self._args, self.config_file)
