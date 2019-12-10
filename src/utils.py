@@ -100,12 +100,15 @@ class RateLimiter:
     start_time, which avoids haivng to write awkward flow-control loops.
     '''
 
-    def __init__(self,minimum, start_time=0.0):
+    def init(self,minimum,start_time=0.0):
+        self.__minimum=minimum
+        self.reset(start_time)
+
+    def __init__(self,minimum=0.0, start_time=0.0):
         '''minimum is the minimum time between fetches,
     optional start_time permits starting the clock on
     initialisation eg. rl=RateLimiter(x,timer())'''
-        self.__minimum=minimum
-        self.reset(start_time)
+
         
     #call limit to start the clock, and each time we want some limiting/sleeping
     #ie before calls to BGG since it's rate limited to 2 calls a sec

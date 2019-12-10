@@ -29,6 +29,7 @@ class DumperTestCase(unittest.TestCase):
 
         self.dmpr=BGGdumper()
         d=self.dmpr
+        d.load_config();
         d.config.base_url='http://localhost:8000/'
         d.config.html_path='test_data/test_scrape1.html?id={page}'
         d.config.xml_path='test_data/test_apidata.xml'

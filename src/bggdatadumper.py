@@ -139,19 +139,22 @@ class BGGdumper:
 
     """
 
-
+    def load_config(self):
+        self.config.load()
+        self._rate_limiter.init(self.config.rate_limiter_minimum)
 
     def __init__(self):
 
         self._suppress_warnings=False
-        self.config=Config(config_version)
-        self.config.load()
-        self._rate_limiter=RateLimiter(self.config.rate_limiter_minimum)
+        self._rate_limiter=RateLimiter()
 
         self._game_ids=[]
         self._csv_cols={}
         self._csv_items=[]
-    
+
+        self.config=Config(config_version)
+
+
     def _warning(self,s):
         if not self.config.suppress_warnings:
             print('##Warning## '+s)
@@ -533,7 +536,7 @@ class BGGdumper:
 
     #sort the csv cols after name
     #split etc
-    def output(self):
+    def export_csv(self):
         progress_str='writing csv'
         progress_bar(0,len(self._csv_items),progress_str)
         with open(self.config.csvfilename, 'w', newline='') as csvfile:
@@ -555,10 +558,11 @@ class BGGdumper:
 
 if __name__ == '__main__':
     bd=BGGdumper()
+    bd.load_config();
     bd.scrape_to_get_ids()
     bd.fetch_ids_xml_and_process()
     #bd.rewrite_column_names()
-    bd.output()
+    bd.export_csv()
 
 '''
 except Exception as e:

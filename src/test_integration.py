@@ -22,6 +22,7 @@ class IntegrationTestCase(unittest.TestCase):
 
         self.dmpr=BGGdumper()
         d=self.dmpr
+        d.load_config();
         d.config.base_url='http://localhost:8000/'
         d.config.html_path='test_data/test_scrape1.html?id={page}'
         d.config.xml_path='test_data/test_apidata.xml'
@@ -32,7 +33,7 @@ class IntegrationTestCase(unittest.TestCase):
     def test_integration(self):
         self.dmpr.scrape_to_get_ids()
         self.dmpr.fetch_xml()
-        self.dmpr.output()
+        self.dmpr.export_csv()
 
         digest=sha1sum('test.csv')
         self.assertEqual(digest,"91d66d2bc160f0095414f8ad3f4e5ddb13cecfc5", "sha1 checksum for test.csv does not match expected")
