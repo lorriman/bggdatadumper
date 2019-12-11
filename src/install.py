@@ -1,3 +1,12 @@
+'''
+=========
+Installer
+=========
+
+Script to install librariess we use. 
+You should invoke your py environment before running this.
+'''
+
 from subprocess import call
 
 cmds=[

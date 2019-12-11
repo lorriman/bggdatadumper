@@ -21,12 +21,12 @@
 import sys
 
 
-def progress_bar(count, total, status=''):
+def progress_bar(count, max, status=''):
     '''Simple text-mode progress bar'''
     bar_len = 60
-    filled_len = int(round(bar_len * count / float(total)))
+    filled_len = int(round(bar_len * count / float(max)))
 
-    percents = round(100.0 * count / float(total), 1)
+    percents = round(100.0 * count / float(max), 1)
     bar = '=' * filled_len + '-' * (bar_len - filled_len)
 
     sys.stdout.write('[%s] %s%s ...%s\r' % (bar, percents, '%', status))

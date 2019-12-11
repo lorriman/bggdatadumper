@@ -212,9 +212,18 @@ class BGGdumper:
 
 
     def process_item_element_recursively( self, csv_cols, csv_item, col_name, xml) -> str:
-        '''Process subitems of item tags (individual games/items)
+        '''Process sub-tags of `item`  tags (individual games/items)
+        
         Returns the built up col_name for unit testing purposes
-        Most of the main xml processing occurs here. 
+        
+        Most of the main xml processing occurs here. A small amount of
+        top-level `item` attributes can't be generically processed and are 
+        done by the :py:meth:`fetch_ids_xml_and_process()` caller. 
+        
+        **important:**
+        
+        Read this: :py:mod:`bggdatadumper.BGGdumper` for the introduction
+        needed to understand the code here, including a description of the xml and its quirks. 
         '''
 
         #localise variables for convenience
@@ -228,11 +237,14 @@ class BGGdumper:
         
         col_name=col_name+'/'+tagname    
 
-        tagHasString=xml.string!=None
+        # mostly the final attribute of a tag will become the data-value/cell-value,
+        # but rarely there is a text node which will relegate the final attribute to
+        # being part of the column name like all other attributes prior the final attibute.
+        tagHasTextNode=xml.string!=None
 
         data_value=''
 
-        if tagHasString:
+        if tagHasTextNode:
             data_value=xml.string.strip()
         
         #is it a leaf node? spelled out for doc purposes
@@ -243,34 +255,51 @@ class BGGdumper:
         else:
             isLeaf=False
 
-        attrs=xml.attrs 
+
+        attributes=xml.attrs #a dict
+
+        # get the two regular expression lists for the exceptions.
+        # Handling the regular expresisons is the most fiddly part ofthe code
         agg_reg=list(config.aggregates_regexes.values())
         force_val_reg=list(config.force_value_into_fieldname_regexes.values())
-        #if has attributes
-        if len(attrs)>0:
-            # get list of attribute keys - attrs is
+                
+        if len(attributes)>0:
+            # get list of attribute keys - attributess is
             # a dict - in insertion order
-            attr_keys=list(attrs)
+            attribute_keys=list(attributes)
 
-            # loop through ech attribute one by one
+            # loop through each attribute one by one
             # the last attribute will be treated as 
             # data value (unless tagHasString, which 
             # will be the data value instead)
-            last_item_index=len(attr_keys)-1 
-            aggregating=False
-            for a in range(0,len(attr_keys)):
-                k=attr_keys[a]
-                v=attrs[k]
+            
+            last_item_index=len(attribute_keys)-1 
 
-                # Aggregation? Instead of only the last attribute,
-                # attributes and values aggregated
-                # together and inserted into the field value 
-                # instead of making up a colum name.
+            aggregating=False
+            for a in range(0,len(attribute_keys)):
+
+                #note the following code is dealing with just one attribute/value pair
+
+                k=attribute_keys[a]
+                v=attributes[k]
+
+                # Set the Aggregation flag. 
+                # If matches the regex, then all subsequent 
+                # attribute-names+values for the tag are lumped
+                # together as one data value INSTEAD
+                # of using only the last attribute's value 
+                # as the data value. 
+                # (This is because except for the final attibute value,
+                # most attribute/value pairs go in to the column name not 
+                # the data value as they are not true data values but rather
+                # labels, but there are some exceptions 
+                # and that will cause columns explosion, hence the regexes).
                 # The new colum name hasn't been
-                # set yet, which is wy we have +k
-                # this test is for the attribute name,
-                # later we repeat but in order to 
-                # test for attribute value as well
+                # set yet, which is why we have `+k`
+                # to create it here.
+                # This test is for attribute names,
+                # later we repeat the test but for 
+                # for the attribute values as well.
                 for r in range(0,len(agg_reg)):
                     if agg_reg[r].match(col_name+':'+k):
                         aggregating=True 
@@ -280,7 +309,7 @@ class BGGdumper:
                 if aggregating:
                     data_value+=k+'='+v+','
                 
-                elif a==last_item_index and not tagHasString:
+                elif a==last_item_index and not tagHasTextNode:
                     # attribute name goes in the col_name, 
                     # and value in to the field value
                     col_name+=':'+k                    
