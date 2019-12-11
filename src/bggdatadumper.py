@@ -304,42 +304,39 @@ class BGGdumper:
                     if agg_reg[r].match(col_name+':'+k):
                         aggregating=True 
 
-                
                 #attribute label and value appended to the data value
                 if aggregating:
                     data_value+=k+'='+v+','
-                
                 elif a==last_item_index and not tagHasTextNode:
                     # attribute name goes in the col_name, 
                     # and value in to the field value
                     col_name+=':'+k                    
                     #the value of the last item is 
                     #not included in the fieldname, unless...                
-                    for r in force_val_reg:
-                        if r.match(col_name):
+                    for r in force_val_reg: 
+                        if r.match(col_name): #excepting a text-node there will be no data-value for this tag 
                             col_name+='='+v
                             #blank the data value
                             v=''
                     data_value+=v
                     col_name+=':'
-                            
-                
                 #attribute becomes part of the field/column name
-                elif not aggregating:
+                else: #not aggregating
                     # not a data item, so put the 
                     # attribute's name AND value in col_name 
                     col_name+=':'+k+'='+v+':'
 
-                #check for aggregation again, 
-                # this time with the attribute value 
-                # included in the column name
-                # Does the new column name match 
-                # with aggregation strings?
+                # Set the agreggation flag, 
+                # this time for the attribute value 
                 for r in range(0,len(agg_reg)):
                     if agg_reg[r].match(col_name):
                         aggregating=True 
+                
+                #process the next attribute.
 
-        if data_value!='':   
+        #finished processing all the attributes, so....
+
+        if data_value!='':#not a redundant test if a final attribute value was forced in to the column name there will be no data value
             #strip any trailing commas from aggregating
             data_value=data_value.strip(',')     
             if col_name in csv_item: # already data? then append
