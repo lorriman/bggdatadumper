@@ -15,7 +15,7 @@ def init():
     #also see filtering regexes in config.json
     xmlpatcher.defuse_stdlib()
 
-def sha1sum(filepath):
+def sha1_sum(filepath):
     sha1 = hashlib.sha1()
     BUF_SIZE = 65536 
     with open(filepath, 'rb') as f:
@@ -27,22 +27,22 @@ def sha1sum(filepath):
     return sha1.hexdigest()
 
 
-def strToArgs(args, separator=' '):
+def str_to_args(args, separator=' '):
     '''prep a string to argv compatible array for Config class
     Does not include correct argv[0]. See strToArgv instead
     '''
     return [ arg.strip() for arg in args.split(separator) if arg.strip()!=''];     
 
-def strToArgv(args, separator=' '):
+def str_to_argv(args, separator=' '):
     ''''Convert string to argv ready array
     Element 0 is set to sys.argv[0] for convenience.'''
     argv0=sys.argv[0]
-    argv=strToArgs(args,separator)
+    argv=str_to_args(args,separator)
     argv.insert(0,argv0)
     return argv
 
 #from https://gist.github.com/betrcode/0248f0fda894013382d7
-def isOpen(ip, port):
+def is_open(ip, port):
     '''support func for checking host/port is open, use checkHost instead'''
 
     timeout = 3
@@ -57,14 +57,14 @@ def isOpen(ip, port):
     finally:
             s.close()
 
-def checkHost(ip, port):
+def check_host(ip, port):
     '''check a service is available, ie, the python webserver for test data'''
     retry = 2
     delay = 2
 
     ipup = False
     for i in range(retry):
-            if isOpen(ip, port):
+            if is_open(ip, port):
                     ipup = True
                     break
             else:
@@ -73,7 +73,7 @@ def checkHost(ip, port):
 
 
 #utility func from https://stackoverflow.com/questions/38634988/check-if-program-runs-in-debug-mode
-def isDebugging():
+def is_debugging():
     '''detects if a debugger is attached'''
     gettrace = getattr(sys, 'gettrace', None)
     if gettrace is None:

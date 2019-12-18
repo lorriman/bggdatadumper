@@ -3,14 +3,14 @@ import unittest
 #for dealing with windows & linux paths
 import ntpath
 from  config import Config 
-from utils import strToArgs 
+from utils import str_to_args 
 
 class ConfigTestCase(unittest.TestCase):
     
     def setUp(self):
         
         test_args='-s 3 -r 500 -g 50 -c config.json file.txt 2'
-        argStr=strToArgs(test_args)
+        argStr=str_to_args(test_args)
         self.config_short=Config('1.0',argStr)
         test_args='''
             --start 3
@@ -18,9 +18,9 @@ class ConfigTestCase(unittest.TestCase):
             --games 50
             --config config.json           
             file.txt 2''' 
-        argStr=strToArgs(test_args)
+        argStr=str_to_args(test_args)
         self.config_long=Config('1.0',argStr)
-        self.config_no_args=Config('1.0',strToArgs("file.txt 2"))
+        self.config_no_args=Config('1.0',str_to_args("file.txt 2"))
 
 
     def test_config_short(self):

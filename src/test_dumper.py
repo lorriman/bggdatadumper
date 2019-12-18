@@ -9,7 +9,7 @@ from bs4 import BeautifulSoup as bs
 from bs4 import element
 
 from bggdatadumper import BGGdumper
-from utils import checkHost , strToArgv
+from utils import check_host , str_to_argv
 
 #quick and dirty unit tests. Must revisit.
 #also need to monkey patch to mock out the need for a webserver.
@@ -22,10 +22,10 @@ class DumperTestCase(unittest.TestCase):
 
     def setUp(self):
 
-        if not checkHost('localhost',8000):
+        if not check_host('localhost',8000):
             raise Exception('Webserver for test data not running. Run "python3 -m http.server" in project directory')
 
-        sys.argv=strToArgv("placeholder.csv 2")
+        sys.argv=str_to_argv("placeholder.csv 2")
 
         self.dmpr=BGGdumper()
         d=self.dmpr

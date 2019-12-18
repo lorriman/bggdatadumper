@@ -1,14 +1,14 @@
 - [ ] Encoding error on Windows. Implement https://stackoverflow.com/questions/27092833/
 
-- [ ] uncomment the main exception handler (oops!). Commented out for debugging.
+- [ ] uncomment the main exception handler. Commented out for debugging.
 
-- [ ] refactor fetchxml and remove the processing code in to its own function
+- [x] refactor fetchxml and remove the processing code in to its own function
 
-- [ ] other random rafctorings/rationalisations (processing code could be chopped up)
+- [x] other random refactorings/rationalisations (processing code could be chopped up)
 
 - [ ] rename functions and classes according to PEP 8 style guide, also ref google style guide
 
-- [ ] do docstrings properly
+- [x] do docstrings properly
 
 - [ ] expand on unittests
 

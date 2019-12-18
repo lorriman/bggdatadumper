@@ -9,7 +9,7 @@ import sys
 import os
 
 #our own stuff
-from utils import init, isDebugging, RateLimiter 
+from utils import init, is_debugging, RateLimiter 
 from config import Config
 
 import urllib.request
@@ -97,7 +97,7 @@ class BGGdumper:
 
     5. Conversely, some last attribute values are not suitable datapoints and should instead makeup
     part of a column name. This is also handled with regular expressions. 
-    See *config.json->force_value_into_fieldname_regexes*.
+    See *config.json->force_value_into_fieldname_regexes*. (revisit, we should rename this to add the word final/last to the variable name for clarity)
 
     :py:meth:`~bggdatadumper.BGGdumper.process_item_element_recursively` handles the sub tags 
     of ``item`` tags. It does not handle the ``item`` tag itself because of its ``type`` attribute 
@@ -155,7 +155,7 @@ class BGGdumper:
         self.config=Config(config_version)
 
 
-    def _warning(self,s):
+    def __warning(self,s):
         if not self.config.suppress_warnings:
             print('##Warning## '+s)
 
@@ -204,7 +204,7 @@ class BGGdumper:
             for link in links:
                 m=id_regex.search(link)
                 if not m:
-                    _warning("id not found in href for "+link+" in "+url)
+                    __warning("id not found in href for "+link+" in "+url)
                 else:
                     game_ids.append(m.group('id'))
 
@@ -228,32 +228,32 @@ class BGGdumper:
 
         #localise variables for convenience
         config=self.config
-        tagname=xml.name
+        tag_name=xml.name
 
         # 'None' mens dead whitespace '\n' etc; 
         # nothing to do and no children so bug out
-        if tagname==None:         
+        if tag_name==None:         
             return
         
-        col_name=col_name+'/'+tagname    
+        col_name=col_name+'/'+tag_name    
 
         # mostly the final attribute of a tag will become the data-value/cell-value,
         # but rarely there is a text node which will relegate the final attribute to
         # being part of the column name like all other attributes prior the final attibute.
-        tagHasTextNode=xml.string!=None
+        tag_has_text_node=xml.string!=None
 
         data_value=''
 
-        if tagHasTextNode:
+        if tag_has_text_node:
             data_value=xml.string.strip()
         
         #is it a leaf node? spelled out for doc purposes
         #this isn't currently used in the code
         temp=xml.findChildren()
         if(len(temp)==0):
-            isLeaf=True
+            is_leaf=True
         else:
-            isLeaf=False
+            is_leaf=False
 
 
         attributes=xml.attrs #a dict
@@ -307,7 +307,7 @@ class BGGdumper:
                 #attribute label and value appended to the data value
                 if aggregating:
                     data_value+=k+'='+v+','
-                elif a==last_item_index and not tagHasTextNode:
+                elif a==last_item_index and not tag_has_text_node:
                     # attribute name goes in the col_name, 
                     # and value in to the field value
                     col_name+=':'+k                    
@@ -354,9 +354,9 @@ class BGGdumper:
                 col_name,
                 child)
 
-    def fetch_xml(url : str):
+    def fetch_xml(self,url):
         '''Utility method that requests the xml and returns a beautiful soup object.'''
-        xmlresponse=urllib.request.urlopen(working_url)
+        xmlresponse=urllib.request.urlopen(url)
         return bs(xmlresponse,"lxml")      
 
     def fetch_ids_xml_and_process(self): 
@@ -431,7 +431,7 @@ class BGGdumper:
             #invoke the rate limiter to slow access and avoid BGG server errors
             self._rate_limiter.limit()
 
-            xml=fetch_xml(working_url)
+            xml=self.fetch_xml(working_url)
             
             xml_items=xml.find_all('item')
             for xml_item in xml_items:
@@ -468,7 +468,7 @@ class BGGdumper:
                 #check and neutralise dodgy data values that might be spreadsheet formulas
                 #revisit: needs test code
                 if config.option_strip_formula_equal_sign_for_csv:
-                    _security_neutralise_spreadsheet_formulas(csv_item)
+                    self._security_neutralise_spreadsheet_formulas(csv_item)
 
                 #now we have all the data, add the row
                 csv_items.append(csv_item)
@@ -477,7 +477,7 @@ class BGGdumper:
             progress_counter+=len(xml_items)
             progress_bar(progress_counter,len(game_ids),progress_str)
 
-    def _security_neutralise_spreadsheet_formulas(csv_item : dict):
+    def _security_neutralise_spreadsheet_formulas(self,csv_item : dict):
         for k in csv_item:
             s=csv_item[k]
             if len(s)==1:
