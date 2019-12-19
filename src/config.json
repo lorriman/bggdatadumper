@@ -22,7 +22,7 @@
         "item-poll-numplayers" : "/item/poll.{1,}/results:numplayers$"
     },
     "security_regexes" : {
-
+        "external entity expansion" : ".*<!DOCTYPE.*?external"      
     },
     "col_names" : {
         "#comment: each regex is compared in order of listing, so last may be skipped if a prior matched" : "",

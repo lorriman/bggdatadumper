@@ -28,7 +28,7 @@ class Config:
             Minimum time to download 5000 games is 8mins 20secs. 
             For advanced options see config.json 
             Settings in config.json are overriden by commandline args. 
-            [requires python3. Developed and tested on linux/python 3.7.4]
+            [requires python3. Developed and tested on linux/python 3.7.3]
 
             example for 5000 games : c:\\>python3 scrape.py -s 3 test.csv 50
 
@@ -74,8 +74,11 @@ class Config:
         self.csvfilename=self._args.csvfilename
         self.start_page=None
         
+        #regular expression lists
         self.aggregates_regexes=None
         self.force_value_into_fieldname_regexes=None
+        self.security_regexes=None
+
         self.new_col_names={}
         self.rate_limiter_minimum=None      
         self.games_per_xml_fetch=None
@@ -83,6 +86,7 @@ class Config:
         self.html_path=None
         self.xml_path=None
         self.debug=False
+
         #security, to neuter spreadsheet formulas if BGG were hacked
         self.option_strip_formula_equal_sign_for_csv=None
         self.games_per_xml_fetch=None
@@ -105,6 +109,7 @@ class Config:
             self.base_url=config["base_url"]
             self.xml_path=config["xml_path"]
             self.html_path=config["html_path"]
+            
             
             
             #security, to neuter spreadsheet forumulas if BGG were hacked
@@ -142,25 +147,25 @@ class Config:
             #but first, func to aid inserting 
             # config regex data in to dicts
             # dict of compiled regexes keyed by strings
-            def fill_string_dict_of_regex(config,target_dict,config_key):
+            def fill_string_dict_of_regex(config,target_dict,config_key, flags=0):
                 try:
                     conf_dict=config[config_key] #dict
                     for key in conf_dict:
                         # (python needs quad escaping)
                         regex_str=(conf_dict[key]).replace('\\','\\\\') 
-                        target_dict[key]=re.compile(regex_str)
+                        target_dict[key]=re.compile(regex_str,flags)
                 except Exception as e:
                     raise Exception(f"Structure of config.json for section \
                         {config_key}? Details: "+ str(e))
 
             #dict of string keyed with compiled regexes
-            def fill_regex_dict_of_string(config,target_dict,config_key):
+            def fill_regex_dict_of_string(config,target_dict,config_key, flags=0):
                 try:
                     conf_dict=config[config_key] #dict
                     for key in conf_dict:
                         # (python needs quad escaping)
                         regex_str=key.replace('\\','\\\\')
-                        regex=re.compile(regex_str)
+                        regex=re.compile(regex_str,flags)
                         target_dict[regex]=conf_dict[key]
                 except Exception as e:
                     raise Exception(f"Structure of config.json for section \
@@ -199,7 +204,14 @@ class Config:
                 self.force_value_into_fieldname_regexes,
                 "force_value_into_fieldname_regexes")
 
-        
+
+            self.security_regexes={}
+            fill_string_dict_of_regex(
+                config,
+                self.security_regexes,
+                "security_regexes",
+                re.IGNORECASE | re.MULTILINE
+            )        
 
 
     def _load_args(self,args):

@@ -8,7 +8,7 @@ from  config import Config
 from bs4 import BeautifulSoup as bs
 from bs4 import element
 
-from bggdatadumper import BGGdumper
+from bggdatadumper import BGGdumper, InsecureDataError
 from utils import check_host , str_to_argv
 
 #quick and dirty unit tests. Must revisit.
@@ -18,8 +18,6 @@ from utils import check_host , str_to_argv
 
 class DumperTestCase(unittest.TestCase):
     
-    
-
     def setUp(self):
 
         if not check_host('localhost',8000):
@@ -36,9 +34,6 @@ class DumperTestCase(unittest.TestCase):
 
     def tearDown(self):
         pass
-
-
-
   
     def test_scrapeGamePage(self):
         self.dmpr.scrape_to_get_ids()
@@ -102,8 +97,17 @@ class DumperTestCase(unittest.TestCase):
         self.assertTrue('/unittest/unittest1:number=1:/pollvalue:value:'==self._colname,colnameReport())
         self.assertEqual(self._item['/unittest/unittest1:number=1:/pollvalue:value:'],'1')
 
+        frag='''<!DOCTYPE external [
+            <!ENTITY ee SYSTEM "file:///PATH/TO/simple.xml">
+            ]>
+            <unittest>
+                    <unittest1 number="1"><pollvalue value="1"/></unittest1>
+            </unittest>
+        '''
 
-        
+        self.assertRaises(InsecureDataError, self.dmpr._process_security_regexes,frag)
+
+
 if __name__ == '__main__':
     unittest.main(argv=['first-arg-is-ignored'], exit=False)
 

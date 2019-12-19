@@ -1,4 +1,4 @@
-version="0.1beta"
+version="0.2beta"
 config_version='1.0'
 
 #(update: make imports specific)
@@ -19,8 +19,17 @@ from bs4 import BeautifulSoup as bs
 from bs4 import element
 
 
-if(sys.version[0]!='3'):
-    raise Exception('Python 3 required. Found python '+sys.version+'\n')
+if(sys.version_info < (3, 7)):
+    raise Exception('Python 3.7+ required. Found python '+sys.version+'\n')
+
+class Error(Exception):
+    pass
+
+class InsecureDataError(Error):
+    '''Used to raise an exception if the xml or html has security violations, such as common xml hacks.'''
+    pass
+
+
 
 init();
 
@@ -354,10 +363,36 @@ class BGGdumper:
                 col_name,
                 child)
 
+
+    def _security_neutralise_spreadsheet_formulas(self,csv_item : dict):
+        for k in csv_item:
+            s=csv_item[k]
+            if len(s)==1:
+                if s[0]=='=':
+                    csv_item[k]=s.strip('=')
+
+
+    def _process_security_regexes(self,data):
+        regexes=self.config.security_regexes
+        for k, r in regexes.items():
+            if r.match(data):
+                raise InsecureDataError("Bad data from source. Type: "+k)
+
     def fetch_xml(self,url):
-        '''Utility method that requests the xml and returns a beautiful soup object.'''
+        '''Utility method that requests the xml and returns a beautiful soup object.
+        This method also passes the data to :py:meth:`~bggdatadumper.BGGdumper._process_security_regexes` 
+        to check for malformed hacker xml.'''
+
         xmlresponse=urllib.request.urlopen(url)
-        return bs(xmlresponse,"lxml")      
+        raw=xmlresponse.read() 
+        #print(raw)
+        
+        try:
+            self._process_security_regexes(raw.decode("utf-8"))       
+        except InsecureDataError as e:
+            raise Exception('For url: '+url+', '+str(e))
+        
+        return bs(raw,"lxml")      
 
     def fetch_ids_xml_and_process(self): 
         ''' Fetches the xml for batches of ids and processes them to extract the data
@@ -476,13 +511,6 @@ class BGGdumper:
             #update the visible progress_bar
             progress_counter+=len(xml_items)
             progress_bar(progress_counter,len(game_ids),progress_str)
-
-    def _security_neutralise_spreadsheet_formulas(self,csv_item : dict):
-        for k in csv_item:
-            s=csv_item[k]
-            if len(s)==1:
-                if s[0]=='=':
-                    csv_item[k]=s.strip('=')
 
 
     def rewrite_column_names(self):
