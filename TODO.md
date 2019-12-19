@@ -10,16 +10,16 @@
 
 - [x] do docstrings properly
 
-- [ ] expand on unittests
+- [ ] more unittests (just the basics are tested)
 
-- [ ] mock webserver for unittests
+- [ ] mock webserver for unittests (currently using http.server with some test html)
 
 - [ ] move unittests to a modern system (pytest?)
 
 - [ ] rejig to do proper stdout and stdin to make it pipeable
 
-- [ ] security regexes
+- [ ] security regexes to filter for common attacks (DDOS are the only ones left, so low priority)
 
-- [ ] security: variable to max-depth recusion, avoid stack blow.
+- [ ] security: variable to max-depth recusion, avoid stack blow. (DDOS, low priority)
 
 - [X] ~~change txt files to md~~
