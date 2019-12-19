@@ -221,9 +221,7 @@ class BGGdumper:
 
 
     def process_item_element_recursively( self, csv_cols, csv_item, col_name, xml) -> str:
-        '''Process sub-tags of `item`  tags (individual games/items)
-        
-        Returns the built up col_name for unit testing purposes
+        '''Process sub-tags of `item` tags (individual games/items)
         
         Most of the main xml processing occurs here. A small amount of
         top-level `item` attributes can't be generically processed and are 
@@ -263,7 +261,6 @@ class BGGdumper:
             is_leaf=True
         else:
             is_leaf=False
-
 
         attributes=xml.attrs #a dict
 
